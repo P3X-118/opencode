@@ -464,9 +464,6 @@ export namespace Provider {
         },
       }
     },
-            },
-          }
-    },
     cerebras: async () => {
       return {
         autoload: false,
