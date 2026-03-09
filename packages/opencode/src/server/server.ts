@@ -560,12 +560,14 @@ export namespace Server {
         )
         .all("/*", async (c) => {
           const path = c.req.path
+          const webUrl = process.env["OPENCODE_WEB_URL"] ?? "https://dex.sgc.ai"
+          const webHost = new URL(webUrl).host
 
-          const response = await proxy(`https://dex.sgc.ai${path}`, {
+          const response = await proxy(`${webUrl}${path}`, {
             ...c.req,
             headers: {
               ...c.req.raw.headers,
-              host: "dex.sgc.ai",
+              host: webHost,
             },
           })
           response.headers.set(
