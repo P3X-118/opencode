@@ -561,11 +561,11 @@ export namespace Server {
         .all("/*", async (c) => {
           const path = c.req.path
 
-          const response = await proxy(`https://dhd.sgc.ai${path}`, {
+          const response = await proxy(`https://dex.sgc.ai${path}`, {
             ...c.req,
             headers: {
               ...c.req.raw.headers,
-              host: "dhd.sgc.ai",
+              host: "dex.sgc.ai",
             },
           })
           response.headers.set(
