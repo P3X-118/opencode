@@ -85,6 +85,10 @@ export namespace Server {
           if (c.req.method === "OPTIONS") return next()
           const password = Flag.OPENCODE_SERVER_PASSWORD
           if (!password) return next()
+          // Skip basic auth for the web UI proxy. Static assets have a file extension;
+          // "/" is the root. The SPA handles auth via its own server-connection dialog.
+          const path = c.req.path
+          if (path === "/" || path.includes(".")) return next()
           const username = Flag.OPENCODE_SERVER_USERNAME ?? "opencode"
           return basicAuth({ username, password })(c, next)
         })
