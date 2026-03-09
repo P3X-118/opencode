@@ -364,18 +364,19 @@ export namespace Provider {
             "HTTP-Referer": "https://sgc.ai/",
             "X-Title": "opencode",
           },
-        }
-      },
-      vercel: async () => {
-          return {
-            autoload: false,
-            options: {
-              headers: {
-                "http-referer": "https://sgc.ai/",
-                "x-title": "opencode",
-              },
-            },
-          }
+        },
+      }
+    },
+    vercel: async () => {
+      return {
+        autoload: false,
+        options: {
+          headers: {
+            "http-referer": "https://sgc.ai/",
+            "x-title": "opencode",
+          },
+        },
+      }
     },
     "google-vertex": async (provider) => {
       const project =
