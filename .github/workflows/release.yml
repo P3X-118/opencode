@@ -1,0 +1,99 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - sgc
+    tags:
+      - 'dex-v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., dex-v0.0.1)'
+        required: true
+        default: 'dex-v0.0.1'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            arch: x64
+            ext: tar.gz
+            platform: linux
+          - os: linux
+            arch: arm64
+            ext: tar.gz
+            platform: linux
+          - os: darwin
+            arch: x64
+            ext: tar.gz
+            platform: darwin
+          - os: darwin
+            arch: arm64
+            ext: tar.gz
+            platform: darwin
+          - os: win32
+            arch: x64
+            ext: zip
+            platform: windows
+
+    runs-on: ${{ matrix.os == 'darwin' && 'macos-latest' || (matrix.os == 'win32' && 'windows-latest' || 'ubuntu-latest') }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: sgc
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.10
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build dex
+        env:
+          DEX_NAME: dex
+          DEX_VERSION: ${{ github.ref_name }}
+        run: |
+          bun run --cwd packages/opencode script/build-dex.ts --single
+
+      - name: Package binary
+        run: |
+          PLATFORM="${{ matrix.platform }}"
+          ARCH="${{ matrix.arch }}"
+          BINARY_NAME="dex-${PLATFORM}-${ARCH}"
+          mkdir -p release
+          if [ "${{ matrix.ext }}" = "tar.gz" ]; then
+            tar -czf release/${BINARY_NAME}.tar.gz -C packages/opencode/dist/${BINARY_NAME}/bin .
+          else
+            cp -r packages/opencode/dist/${BINARY_NAME}/bin/* release/
+            cd release && powershell -Command "Compress-Archive -Path * -DestinationPath ${BINARY_NAME}.zip -Force" && cd ..
+          fi
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: release/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create version file
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "dex $VERSION released" > release-info.txt
+      
+      - name: Notify completion
+        run: |
+          echo "Dex release ${{ github.ref_name }} completed!"
+          echo "View at: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
