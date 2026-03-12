@@ -4,9 +4,7 @@ import { $ } from "bun"
 import fs from "fs"
 import path from "path"
 import { fileURLToPath } from "url"
-
-const DEX_NAME = process.env.DEX_NAME || "dex"
-const DEX_VERSION = process.env.DEX_VERSION || "dex-v0.0.1"
+import solidPlugin from "../node_modules/@opentui/solid/scripts/solid-plugin"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -14,8 +12,11 @@ const dir = path.resolve(__dirname, "..")
 
 process.chdir(dir)
 
-const { Script } = await import("@opencode-ai/script")
-const pkg = await import("../package.json")
+import { Script } from "@opencode-ai/script"
+import pkg from "../package.json"
+
+const DEX_NAME = process.env.DEX_NAME || "dex"
+const DEX_VERSION = process.env.DEX_VERSION || "dex-v0.0.1"
 
 const version = DEX_VERSION.replace("dex-v", "") || Script.version
 const channel = "latest"
@@ -123,7 +124,6 @@ for (const item of targets) {
   console.log(`building ${name}`)
   await $`mkdir -p dist/${name}/bin`
 
-  const solidPlugin = (await import("@opentui/solid/scripts/solid-plugin")).default
   const parserWorker = fs.realpathSync(path.resolve(dir, "./node_modules/@opentui/core/parser.worker.js"))
   const workerPath = "./src/cli/cmd/tui/worker.ts"
 
