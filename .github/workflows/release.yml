@@ -27,18 +27,6 @@ jobs:
             arch: arm64
             ext: tar.gz
             platform: linux
-          - os: darwin
-            arch: x64
-            ext: tar.gz
-            platform: darwin
-          - os: darwin
-            arch: arm64
-            ext: tar.gz
-            platform: darwin
-          - os: win32
-            arch: x64
-            ext: zip
-            platform: windows
 
     runs-on: ${{ matrix.os == 'darwin' && 'macos-latest' || (matrix.os == 'win32' && 'windows-latest' || 'ubuntu-latest') }}
 
@@ -53,40 +41,21 @@ jobs:
         with:
           bun-version: 1.3.10
 
-      - name: Show environment
-        run: |
-          echo "Platform: ${{ matrix.os }}"
-          echo "Architecture: ${{ matrix.arch }}"
-          echo "Bun version: $(bun --version)"
-          echo "Node version: $(node --version)"
-
       - name: Install dependencies
-        run: |
-          bun install --verbose
-
-      - name: Show package.json
-        run: cat packages/opencode/package.json
+        run: bun install
 
       - name: Build dex
         env:
           DEX_NAME: dex
           DEX_VERSION: ${{ github.ref_name }}
         run: |
-          echo "DEX_VERSION=$DEX_VERSION"
-          echo "DEX_NAME=$DEX_NAME"
-          bun run --cwd packages/opencode script/build-dex.ts --single 2>&1
-
-      - name: Show dist directory
-        if: success()
-        run: ls -la packages/opencode/dist/ || echo "No dist directory"
+          bun run --cwd packages/opencode script/build-dex.ts --single
 
       - name: Package binary
-        if: success()
         run: |
           PLATFORM="${{ matrix.platform }}"
           ARCH="${{ matrix.arch }}"
           BINARY_NAME="dex-${PLATFORM}-${ARCH}"
-          echo "Packaging: $BINARY_NAME"
           mkdir -p release
           if [ "${{ matrix.ext }}" = "tar.gz" ]; then
             tar -czf release/${BINARY_NAME}.tar.gz -C packages/opencode/dist/${BINARY_NAME}/bin .
@@ -96,7 +65,6 @@ jobs:
           fi
 
       - name: Upload release asset
-        if: success()
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
@@ -110,11 +78,6 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     steps:
-      - name: Create version file
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          echo "dex $VERSION released" > release-info.txt
-      
       - name: Notify completion
         run: |
           echo "Dex release ${{ github.ref_name }} completed!"
