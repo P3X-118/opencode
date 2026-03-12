@@ -16,6 +16,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: linux
@@ -87,6 +88,7 @@ jobs:
   notify:
     needs: build
     runs-on: ubuntu-latest
+    if: always()
     steps:
       - name: Create version file
         run: |

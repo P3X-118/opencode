@@ -17,8 +17,8 @@ process.chdir(dir)
 const { Script } = await import("@opencode-ai/script")
 const pkg = await import("../package.json")
 
-const originalVersion = Script.version
-Script.version = DEX_VERSION.replace("dex-v", "")
+const version = DEX_VERSION.replace("dex-v", "") || Script.version
+const channel = "latest"
 
 const modelsUrl = process.env.OPENCODE_MODELS_URL || "https://models.dev"
 const modelsData = process.env.MODELS_DEV_API_JSON
@@ -99,6 +99,9 @@ const targets = singleFlag
     })
   : allTargets
 
+console.log(`Building for platform: ${process.platform} ${process.arch}`)
+console.log(`Matched targets:`, targets.map(t => `${t.os}-${t.arch}`))
+
 await $`rm -rf dist`
 
 const binaries: Record<string, string> = {}
@@ -139,16 +142,16 @@ for (const item of targets) {
       autoloadPackageJson: true,
       target: "bun",
       outfile: `dist/${name}/bin/${DEX_NAME}`,
-      execArgv: [`--user-agent=${DEX_NAME}/${Script.version}`, "--use-system-ca", "--"],
+      execArgv: [`--user-agent=${DEX_NAME}/${version}`, "--use-system-ca", "--"],
       windows: {},
     },
     entrypoints: ["./src/index.ts", parserWorker, workerPath],
     define: {
-      OPENCODE_VERSION: `'${Script.version}'`,
+      OPENCODE_VERSION: `'${version}'`,
       OPENCODE_MIGRATIONS: JSON.stringify(migrations),
       OTUI_TREE_SITTER_WORKER_PATH: bunfsRoot + workerRelativePath,
       OPENCODE_WORKER_PATH: workerPath,
-      OPENCODE_CHANNEL: `'${Script.channel}'`,
+      OPENCODE_CHANNEL: `'${channel}'`,
       OPENCODE_LIBC: item.os === "linux" ? `'${item.abi ?? "glibc"}'` : "",
     },
   })
@@ -158,7 +161,7 @@ for (const item of targets) {
     JSON.stringify(
       {
         name,
-        version: Script.version,
+        version,
         os: [item.os],
         cpu: [item.arch],
       },
@@ -166,7 +169,7 @@ for (const item of targets) {
       2,
     ),
   )
-  binaries[name] = Script.version
+  binaries[name] = version
 }
 
 console.log(`Built ${Object.keys(binaries).length} binaries`)
