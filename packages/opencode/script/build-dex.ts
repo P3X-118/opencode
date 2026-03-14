@@ -140,7 +140,7 @@ for (const item of targets) {
       autoloadDotenv: false,
       autoloadTsconfig: true,
       autoloadPackageJson: true,
-      target: `${item.os === "win32" ? "windows" : item.os}-${item.arch}`,
+      target: `bun-${item.os === "win32" ? "windows" : item.os}-${item.arch}`,
       outfile: `dist/${name}/bin/${DEX_NAME}`,
       execArgv: [`--user-agent=${DEX_NAME}/${version}`, "--use-system-ca", "--"],
       windows: {},
