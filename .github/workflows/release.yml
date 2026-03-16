@@ -32,6 +32,16 @@ jobs:
             ext: tar.gz
             platform: linux
             artifact: dex-linux-arm64
+          - os: darwin
+            arch: x64
+            ext: tar.gz
+            platform: darwin
+            artifact: dex-darwin-x64
+          - os: darwin
+            arch: arm64
+            ext: tar.gz
+            platform: darwin
+            artifact: dex-darwin-arm64
 
     runs-on: ${{ matrix.os == 'darwin' && 'macos-latest' || (matrix.os == 'win32' && 'windows-latest' || 'ubuntu-latest') }}
 
@@ -94,6 +104,14 @@ jobs:
               {
                 "name": "dex-linux-arm64",
                 "url": "https://github.com/P3X-118/opencode/releases/download/$VERSION/dex-linux-arm64.tar.gz"
+              },
+              {
+                "name": "dex-darwin-x64",
+                "url": "https://github.com/P3X-118/opencode/releases/download/$VERSION/dex-darwin-x64.tar.gz"
+              },
+              {
+                "name": "dex-darwin-arm64",
+                "url": "https://github.com/P3X-118/opencode/releases/download/$VERSION/dex-darwin-arm64.tar.gz"
               }
             ]
           }
